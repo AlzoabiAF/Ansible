@@ -1,0 +1,74 @@
+---
+# tasks file for install_db
+- name: add Postgres GPG key
+  shell: |
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+- name: add Postgres repository
+  shell: |
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+
+- name: update and upgrade system 
+  apt:
+    update_cache: yes
+    upgrade: yes
+  
+- name: install packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+
+- name: install psycopg2
+  pip:
+    name: psycopg2-binary
+
+- name: copy init script
+  copy:
+    src: init.sql
+    dest: .
+    mode: 0644
+
+- name: start postgres service
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Include secrets
+  include_vars: secrets.yml
+
+- name: adding password for user 'postgres' in Postgres 
+  become_user: postgres
+  postgresql_query:
+    query: |
+      ALTER USER {{ db_user }} WITH PASSWORD '{{ password }}';
+  ignore_errors: yes
+
+- name: replace 'peer' with 'md5' in pg_hba.conf
+  replace:
+    path: /etc/postgresql/17/main/pg_hba.conf
+    regexp: 'peer'
+    replace: 'md5'
+
+- name: Update listen_addresses
+  replace:
+    path: /etc/postgresql/17/main/postgresql.conf
+    regexp: "#listen_addresses = 'localhost'"
+    replace: "listen_addresses = '*'"
+
+- name: Update listen_addresses
+  replace:
+    path: /etc/postgresql/17/main/pg_hba.conf
+    regexp: 'host    all             all             127.0.0.1/32            scram-sha-256'
+    replace: 'host    all             all             192.168.56.0/24            md5'
+
+- name: restart postgresql
+  service:
+    name: postgresql
+    state: restarted
+
+- name: execute init script
+  shell: |
+    PGPASSWORD="{{ password }}" psql -U "{{ db_user }}" -d postgres -f init.sql
+  args:
+    executable: /bin/bash

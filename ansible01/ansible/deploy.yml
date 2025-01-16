@@ -1,0 +1,40 @@
+- name: deploy services
+  hosts: nodes
+  become: yes
+
+  tasks:
+    - name: update and upgrade system 
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: install docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: install docker-compose
+      apt:
+        name: docker-compose-v2
+        state: present
+
+    - name: start docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: check if app directory exists
+      stat:
+        path: ./app
+      register: app_dir
+
+    - name: copy app directory to remote host
+      copy:
+        src: ~/app
+        dest: .
+        remote_src: no
+      when: not app_dir.stat.exists
+
+    - name: start services
+      command: sudo docker compose -f app/docker-compose.yml up -d

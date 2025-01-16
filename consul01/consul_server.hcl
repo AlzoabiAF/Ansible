@@ -1,0 +1,9 @@
+datacenter = "dc1"
+data_dir = "/opt/consul"
+node_name = "consul-server-1"
+server = true
+bootstrap_expect = 1
+advertise_addr = "192.168.56.11"
+client_addr = "0.0.0.0"
+bind_addr = "0.0.0.0"
+ui = true

@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for postgres
+
+packages:
+  - postgresql
+  - postgresql-contrib
+  - python3-pip
+  - acl
+
+db_user: postgres
+

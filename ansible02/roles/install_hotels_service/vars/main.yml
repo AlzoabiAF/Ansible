@@ -1,0 +1,4 @@
+---
+# vars file for install_hotels_service
+
+db_user: postgres

@@ -1,0 +1,43 @@
+---
+# tasks file for install_consul_server
+
+- name: update and upgrade system 
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: install consul
+  apt:
+    name: 
+      - consul
+    state: present
+
+- name: create consul directory
+  file:
+    path: "{{ item }}"
+    owner: consul
+    group: consul
+    state: directory
+  loop:
+    - /opt/consul
+    - /opt/consul.d
+
+- name: copy Consul server config
+  copy:
+    src: "consul_server.hcl"
+    dest: "/etc/consul.d/consul.hcl"
+    owner: consul
+    group: consul
+
+- name: create systemd service for Consul
+  copy:
+    src: "consul.service"
+    dest: "/etc/systemd/system/consul.service"
+    owner: consul
+    group: consul
+
+- name: start consul service
+  service:
+    name: consul
+    state: started
+    enabled: yes

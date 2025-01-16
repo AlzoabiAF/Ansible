@@ -1,0 +1,4 @@
+manager        ansible_host=192.168.56.10  ansible_user=vagrant
+consul_server  ansible_host=192.168.56.11  ansible_user=vagrant
+api            ansible_host=192.168.56.12  ansible_user=vagrant
+db             ansible_host=192.168.56.13  ansible_user=vagrant

@@ -1,0 +1,45 @@
+---
+# tasks file for install_hotels_service
+
+- name: update and upgrade system 
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: install jdk 8
+  apt:
+    name: openjdk-8-jdk 
+    state: present
+
+- name: set JAVA_HOME path
+  shell: export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+- name: add JAVA bin directory to the PATH variable
+  shell: export PATH=$PATH:$JAVA_HOME/bin
+
+- name: include secrets
+  include_vars: secrets.yml
+
+- name: copy files 
+  copy:
+    src: hotel-service/
+    dest: .
+
+- name: chmod mvnw
+  file: 
+    dest: mvnw
+    mode: a+x
+
+- name: build hotel service
+  shell: ./mvnw package -DskipTests
+
+- name: start hotel service
+  shell: |
+    java -jar target/*.jar
+  environment:
+    POSTGRES_HOST: 192.168.56.13
+    POSTGRES_PORT: 5432
+    POSTGRES_DB: hotels_db
+    POSTGRES_USER: "{{ db_user }}"
+    POSTGRES_PASSWORD: "{{ password }}"
+

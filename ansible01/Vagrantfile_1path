@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# ENV['VAGRANT_SERVER_URL'] = 'https://vagrant.elab.pro'
+Vagrant.configure("2") do |config|
+
+  
+
+  config.vm.box = "ubuntu/focal64"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "4096"
+  end
+
+  config.vm.define "manager", primary: true do |manager|
+    manager.vm.hostname = "manager"
+
+    manager.vm.network "private_network", ip: "192.168.56.10"
+    
+    manager.vm.provision "shell", path: "setup.sh", args: "manager"
+
+    # move files to the manager
+    manager.vm.provision "file", source:  "services", destination: "/home/vagrant/app/services"
+    manager.vm.provision "file", source:  "dependence", destination: "/home/vagrant/app"
+    manager.vm.provision "file", source:  "ansible01", destination: "/home/vagrant"
+  end
+
+  config.vm.define "node01" do |node|
+    node.vm.hostname = "node01"
+    node.vm.network "private_network", ip: "192.168.56.11"
+    node.vm.network "forwarded_port", guest: 8081, host: 8081
+    node.vm.network "forwarded_port", guest: 8087, host: 8087
+    node.vm.provision "shell", path: "setup.sh", args: "node01"
+  end
+
+  config.vm.define "node02" do |node|
+    node.vm.hostname = "node02"
+    node.vm.network "private_network", ip: "192.168.56.12"
+    node.ssh.password = "vagrant"
+    node.vm.provision "shell", path: "setup.sh", args: "node02"
+  end
+
+end

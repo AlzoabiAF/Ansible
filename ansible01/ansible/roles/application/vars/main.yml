@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for application
+
+packages: 
+  - docker.io
+  - docker-compose-v2

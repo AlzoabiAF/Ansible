@@ -1,0 +1,34 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for application
+
+- name: update and upgrade system 
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: install packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+
+- name: start docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: check if app directory exists
+  stat:
+    path: ./app
+  register: app_dir
+
+- name: copy app directory to remote host
+  copy:
+    src: "{{ role_path }}/files/"
+    dest: ./app
+    remote_src: no
+  when: not app_dir.stat.exists
+
+- name: start application
+  command: sudo docker compose -f app/docker-compose.yml up -d
